@@ -2,6 +2,7 @@
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.1.0",
     "@react-native-mapbox-gl/maps": "^8.5.0",
+    "expo": "^52.0.31",
     "expo-font": "^13.0.3",
     "moment": "^2.30.1",
     "react-native-mapbox-gl": "^5.2.1-deprecated",

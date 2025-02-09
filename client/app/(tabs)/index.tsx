@@ -1,31 +1,47 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useFonts } from "expo-font";
-import { useRouter } from "expo-router"; // Importer le routeur
+import { useRouter } from "expo-router";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../constants/firebaseconfig";
 
 const HomeScreen = () => {
-  const router = useRouter(); // Initialiser le routeur
+  const router = useRouter();
+  const [data, setData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Charger la police Montserrat Alternates
+  // Charger les polices personnalisées
   const [fontsLoaded] = useFonts({
     MontserratAlternates: require("../../assets/fonts/MontserratAlternates-Regular.ttf"),
-  });
-
-  const [fontsLoaded2] = useFonts({
     Comme: require("../../assets/fonts/Comme-ExtraLight.ttf"),
   });
 
-
-  // Vérification du chargement des polices
+  // Vérifier si les polices sont chargées
   if (!fontsLoaded) {
     return <Text>Chargement des polices...</Text>;
   }
-  if (!fontsLoaded2) {
-    return <Text>Chargement des polices...</Text>;
-  }
 
+  // Récupérer les données depuis Firestore
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "livreurs"));
+        const fetchedData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setData(fetchedData);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Obtenir la date actuelle au format "Mardi 28 janvier 2025" avec jour en majuscule
+    fetchData();
+  }, []);
+
+  // Obtenir la date actuelle formatée
   const getFormattedDate = () => {
     const date = new Date();
     const options: Intl.DateTimeFormatOptions = {
@@ -40,25 +56,24 @@ const HomeScreen = () => {
 
   const currentDate = getFormattedDate();
 
-  // Données de la liste
-  const data = [
-    { id: "1", city: "Épinal", depots: 3, distance: 103 },
-    { id: "2", city: "Dinozé", depots: 3, distance: 70 },
-    { id: "3", city: "Golbey", depots: 3, distance: 26 },
-    { id: "4", city: "Ville 4", depots: 3, distance: 32 },
-    { id: "5", city: "Ville 5", depots: 3, distance: 15 },
-    { id: "6", city: "Ville 6", depots: 3, distance: 60 },
-  ];
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#7ba352" />
+        <Text>Chargement des données...</Text>
+      </View>
+    );
+  }
 
-  // Fonction pour gérer la sélection d'une carte
+  // Gestion de la sélection d'une carte
   const handleSelect = (city: string) => {
-    router.push(`/details?city=${city}`); // Naviguer vers la page de détails
+    router.push(`/details?city=${city}`);
   };
 
-  // Fonction pour afficher chaque carte
+  // Rendu des cartes
   const renderCard = ({ item }: { item: any }) => (
     <TouchableOpacity onPress={() => handleSelect(item.city)}>
-      <View style={[styles.card]}>
+      <View style={styles.card}>
         <Text style={styles.cityName}>{item.city}</Text>
         <Text style={styles.cardText}>Dépôts : {item.depots}</Text>
         <Text style={styles.cardText}>Kilométrage : {item.distance}</Text>
@@ -68,16 +83,16 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Date */}
+      {/* Affichage de la date */}
       <Text style={styles.date}>{currentDate}</Text>
 
       {/* Liste des villes */}
       <FlatList
         data={data}
         renderItem={renderCard}
-        keyExtractor={(item) => item.id}
-        numColumns={2} // Grille avec 2 colonnes
-        columnWrapperStyle={styles.row} // Style entre colonnes
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
       />
     </View>
   );
@@ -88,51 +103,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f6f6f6", // Couleur de fond claire
+    backgroundColor: "#f6f6f6",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   date: {
-    textAlign: "left", // Alignement à gauche
+    textAlign: "left",
     fontSize: 18,
     fontWeight: "bold",
-    fontFamily: "MontserratAlternates", // Application explicite de la police
-    color: "#333", // Couleur légèrement foncée
+    fontFamily: "MontserratAlternates",
+    color: "#333",
     marginBottom: 36,
     marginLeft: 12,
     marginTop: 12,
   },
   row: {
     justifyContent: "space-between",
-    marginBottom: 16, // Espacement entre les lignes
+    marginBottom: 16,
   },
   card: {
     flex: 1,
-    backgroundColor: "#fff", // Fond blanc pour la carte
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e0e0e0", // Bordure légèrement grise
-    borderRadius: 8, // Coins arrondis
+    borderColor: "#e0e0e0",
+    borderRadius: 8,
     padding: 18,
-    marginHorizontal: 16, // Espacement horizontal
-    marginVertical: 6, // Espacement vertical
-    alignItems: "flex-start", // Aligner le texte à gauche
+    marginHorizontal: 16,
+    marginVertical: 6,
+    alignItems: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2, // Ombre sur Android
+    elevation: 2,
     marginTop: 20,
-    
   },
   cityName: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#7ba352", // Vert pour le nom des villes
+    color: "#7ba352",
     marginBottom: 8,
-    fontFamily:'Comme',
+    fontFamily: "Comme",
   },
   cardText: {
     fontSize: 14,
-    color: "#333", // Texte sombre
-    fontFamily:'Comme',
+    color: "#333",
+    fontFamily: "Comme",
   },
 });
 

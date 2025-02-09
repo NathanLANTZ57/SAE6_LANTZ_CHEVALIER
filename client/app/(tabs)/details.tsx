@@ -6,7 +6,7 @@ const DetailsScreen = () => {
   const data = [
     {
       id: "1",
-      title: "Panier Simple Hebdomadaire",
+      title: "Panier Simple test",
       details: [
         "Nombre : 10 paniers à Église Saint Antoine",
         "Nombre : 10 paniers à Ligue de l'enseignement",
@@ -41,9 +41,6 @@ const DetailsScreen = () => {
       ],
     },
   ];
-  
-
-
 
   const router = useRouter();
 
