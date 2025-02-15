@@ -16,21 +16,33 @@ const HomeScreen = () => {
     Comme: require("../../assets/fonts/Comme-ExtraLight.ttf"),
   });
 
-  // Vérifier si les polices sont chargées
   if (!fontsLoaded) {
     return <Text>Chargement des polices...</Text>;
   }
 
-  // Récupérer les données depuis Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "livreurs"));
-        const fetchedData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setData(fetchedData);
+        const querySnapshot = await getDocs(collection(db, "tournées"));
+        const fetchedData = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            jour: data.jour,
+            city: data.city,
+            depots: data.depots,
+            distance: data.distance,
+          };
+        });
+
+        // Obtenir le jour actuel
+        const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+        const today = jours[new Date().getDay()];
+
+        // Filtrer les tournées du jour
+        const todaysTours = fetchedData.filter((tournee) => tournee.jour === today);
+
+        setData(todaysTours);
       } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
       } finally {
@@ -41,64 +53,41 @@ const HomeScreen = () => {
     fetchData();
   }, []);
 
-  // Obtenir la date actuelle formatée
-  const getFormattedDate = () => {
-    const date = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    };
-    const formattedDate = date.toLocaleDateString("fr-FR", options);
-    return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
-  };
-
-  const currentDate = getFormattedDate();
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#7ba352" />
-        <Text>Chargement des données...</Text>
+        <Text>Chargement des tournées...</Text>
       </View>
     );
   }
 
-  // Gestion de la sélection d'une carte
   const handleSelect = (city: string) => {
-    router.push(`/details?city=${city}`);
+    router.push(`/map?city=${city}`);
   };
 
-  // Rendu des cartes
   const renderCard = ({ item }: { item: any }) => (
     <TouchableOpacity onPress={() => handleSelect(item.city)}>
       <View style={styles.card}>
         <Text style={styles.cityName}>{item.city}</Text>
         <Text style={styles.cardText}>Dépôts : {item.depots}</Text>
-        <Text style={styles.cardText}>Kilométrage : {item.distance}</Text>
+        <Text style={styles.cardText}>Distance : {item.distance}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      {/* Affichage de la date */}
-      <Text style={styles.date}>{currentDate}</Text>
-
-      {/* Liste des villes */}
+      <Text style={styles.sectionHeader}>Tournées du jour :</Text>
       <FlatList
         data={data}
         renderItem={renderCard}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
+        keyExtractor={(item) => item.id}
       />
     </View>
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -110,19 +99,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  date: {
-    textAlign: "left",
-    fontSize: 18,
+  sectionHeader: {
+    fontSize: 20,
     fontWeight: "bold",
-    fontFamily: "MontserratAlternates",
-    color: "#333",
-    marginBottom: 36,
-    marginLeft: 12,
-    marginTop: 12,
-  },
-  row: {
-    justifyContent: "space-between",
-    marginBottom: 16,
+    backgroundColor: "#7ba352",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    textAlign: "center",
   },
   card: {
     flex: 1,
@@ -131,7 +116,6 @@ const styles = StyleSheet.create({
     borderColor: "#e0e0e0",
     borderRadius: 8,
     padding: 18,
-    marginHorizontal: 16,
     marginVertical: 6,
     alignItems: "flex-start",
     shadowColor: "#000",
@@ -139,7 +123,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    marginTop: 20,
+    marginHorizontal: 16,
   },
   cityName: {
     fontSize: 18,
