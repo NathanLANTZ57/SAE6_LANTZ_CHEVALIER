@@ -24,3 +24,4 @@ const db = getFirestore(app); // Utilisez Firestore pour la base de données
 const analytics = getAnalytics(app);
 
 export { db }; // Exporter `db` pour l'utiliser dans votre application
+export const MAPBOX_API_KEY = "pk.eyJ1IjoibnRoaCIsImEiOiJjbTc5NHI0czgwMW4wMmpxeTB3aXVndHk5In0.1qbbZnc-1MVtoUN1pwFIVw";

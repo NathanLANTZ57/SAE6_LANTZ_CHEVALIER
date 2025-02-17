@@ -63,7 +63,7 @@ const HomeScreen = () => {
   }
 
   const handleSelect = (city: string) => {
-    router.push(`/map?city=${city}`);
+    router.push(`/details?city=${city}`);
   };
 
   const renderCard = ({ item }: { item: any }) => (
