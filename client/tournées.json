@@ -1,161 +1,177 @@
 [
-    {
-      "city": "Paris",
-      "depots": 3,
-      "distance": "15km",
-      "jour": "Lundi",
-      "title": "Tournée Paris",
-      "livraisons": [
-        {
-          "adresse": "Église Saint Antoine",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.8566, "longitude": 2.3522 }
-        },
-        {
-          "adresse": "Ligue de l'enseignement",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.8606, "longitude": 2.3376 }
-        },
-        {
-          "adresse": "Centre Léo LaGrange",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.8488, "longitude": 2.3485 }
-        }
-      ]
-    },
-    {
-      "city": "Lyon",
-      "depots": 2,
-      "distance": "20km",
-      "jour": "Mardi",
-      "title": "Tournée Lyon",
-      "livraisons": [
-        {
-          "adresse": "Église Notre-Dame",
-          "nombre": 12,
-          "coordonnees": { "latitude": 45.764, "longitude": 4.8357 }
-        },
-        {
-          "adresse": "Maison des associations",
-          "nombre": 8,
-          "coordonnees": { "latitude": 45.750, "longitude": 4.850 }
-        }
-      ]
-    },
-    {
-      "city": "Marseille",
-      "depots": 3,
-      "distance": "30km",
-      "jour": "Mercredi",
-      "title": "Tournée Marseille",
-      "livraisons": [
-        {
-          "adresse": "Vieux Port",
-          "nombre": 15,
-          "coordonnees": { "latitude": 43.2965, "longitude": 5.3698 }
-        },
-        {
-          "adresse": "Stade Vélodrome",
-          "nombre": 10,
-          "coordonnees": { "latitude": 43.2707, "longitude": 5.4004 }
-        },
-        {
-          "adresse": "Parc Borély",
-          "nombre": 5,
-          "coordonnees": { "latitude": 43.2602, "longitude": 5.3766 }
-        }
-      ]
-    },
-    {
-      "city": "Epinal",
-      "depots": 3,
-      "distance": "25km",
-      "jour": "Mardi",
-      "title": "Tournée Epinal",
-      "livraisons": [
-        {
-          "adresse": "Église Saint Antoine - 12, rue Armand Colle",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.1833, "longitude": 6.4500 }
-        },
-        {
-          "adresse": "Ligue de l’enseignement - 15, rue Général de Reffye",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.1900, "longitude": 6.4600 }
-        },
-        {
-          "adresse": "Centre Léo LaGrange - 6, Avenue Salvador Allende",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.2000, "longitude": 6.4700 }
-        }
-      ]
-    },
-    {
-      "city": "Nancy",
-      "depots": 3,
-      "distance": "25km",
-      "jour": "Samedi",
-      "title": "Tournée Nancy",
-      "livraisons": [
-        {
-          "adresse": "Place Stanislas",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.6921, "longitude": 6.1844 }
-        },
-        {
-          "adresse": "Université de Lorraine",
-          "nombre": 8,
-          "coordonnees": { "latitude": 48.6772, "longitude": 6.1519 }
-        },
-        {
-          "adresse": "Parc de la Pépinière",
-          "nombre": 12,
-          "coordonnees": { "latitude": 48.6956, "longitude": 6.1835 }
-        }
-      ]
-    },
-    {
-      "city": "Metz",
-      "depots": 2,
-      "distance": "30km",
-      "jour": "Samedi",
-      "title": "Tournée Metz",
-      "livraisons": [
-        {
-          "adresse": "Centre Pompidou Metz",
-          "nombre": 15,
-          "coordonnees": { "latitude": 49.1102, "longitude": 6.1788 }
-        },
-        {
-          "adresse": "Cathédrale Saint-Étienne",
-          "nombre": 10,
-          "coordonnees": { "latitude": 49.1195, "longitude": 6.1762 }
-        }
-      ]
-    },
-    {
-      "city": "Strasbourg",
-      "depots": 3,
-      "distance": "40km",
-      "jour": "Samedi",
-      "title": "Tournée Strasbourg",
-      "livraisons": [
-        {
-          "adresse": "Cathédrale de Strasbourg",
-          "nombre": 12,
-          "coordonnees": { "latitude": 48.5839, "longitude": 7.7455 }
-        },
-        {
-          "adresse": "Parc de l'Orangerie",
-          "nombre": 10,
-          "coordonnees": { "latitude": 48.5999, "longitude": 7.7766 }
-        },
-        {
-          "adresse": "Place Kléber",
-          "nombre": 8,
-          "coordonnees": { "latitude": 48.5832, "longitude": 7.7457 }
-        }
-      ]
-    }
-  ]
-  
+  {
+    "city": "Paris",
+    "depots": 3,
+    "distance": "15km",
+    "jour": "Lundi",
+    "title": "Tournée Paris 1",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Église Saint Antoine",
+        "nombre": 10,
+        "coordonnees": { "latitude": 48.8566, "longitude": 2.3522 }
+      },
+      {
+        "adresse": "Ligue de l'enseignement",
+        "nombre": 10,
+        "coordonnees": { "latitude": 48.8606, "longitude": 2.3376 }
+      },
+      {
+        "adresse": "Centre Léo LaGrange",
+        "nombre": 10,
+        "coordonnees": { "latitude": 48.8488, "longitude": 2.3485 }
+      }
+    ]
+  },
+  {
+    "city": "Paris",
+    "depots": 3,
+    "distance": "18km",
+    "jour": "Lundi",
+    "title": "Tournée Paris 2",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Tour Eiffel",
+        "nombre": 15,
+        "coordonnees": { "latitude": 48.8584, "longitude": 2.2945 }
+      },
+      {
+        "adresse": "Gare du Nord",
+        "nombre": 8,
+        "coordonnees": { "latitude": 48.8808, "longitude": 2.3553 }
+      },
+      {
+        "adresse": "Champs-Élysées",
+        "nombre": 12,
+        "coordonnees": { "latitude": 48.8698, "longitude": 2.3077 }
+      }
+    ]
+  },
+  {
+    "city": "Lyon",
+    "depots": 3,
+    "distance": "20km",
+    "jour": "Mardi",
+    "title": "Tournée Lyon 1",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Place Bellecour",
+        "nombre": 12,
+        "coordonnees": { "latitude": 45.7578, "longitude": 4.8328 }
+      },
+      {
+        "adresse": "Fourvière",
+        "nombre": 8,
+        "coordonnees": { "latitude": 45.7625, "longitude": 4.8217 }
+      },
+      {
+        "adresse": "Parc de la Tête d'Or",
+        "nombre": 10,
+        "coordonnees": { "latitude": 45.7772, "longitude": 4.8589 }
+      }
+    ]
+  },
+  {
+    "city": "Marseille",
+    "depots": 3,
+    "distance": "30km",
+    "jour": "Mercredi",
+    "title": "Tournée Marseille 1",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Vieux Port",
+        "nombre": 15,
+        "coordonnees": { "latitude": 43.2965, "longitude": 5.3698 }
+      },
+      {
+        "adresse": "Stade Vélodrome",
+        "nombre": 10,
+        "coordonnees": { "latitude": 43.2707, "longitude": 5.4004 }
+      },
+      {
+        "adresse": "Parc Borély",
+        "nombre": 5,
+        "coordonnees": { "latitude": 43.2602, "longitude": 5.3766 }
+      }
+    ]
+  },
+  {
+    "city": "Nice",
+    "depots": 3,
+    "distance": "22km",
+    "jour": "Jeudi",
+    "title": "Tournée Nice 1",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Promenade des Anglais",
+        "nombre": 15,
+        "coordonnees": { "latitude": 43.6959, "longitude": 7.2719 }
+      },
+      {
+        "adresse": "Place Masséna",
+        "nombre": 10,
+        "coordonnees": { "latitude": 43.6969, "longitude": 7.2703 }
+      },
+      {
+        "adresse": "Port Lympia",
+        "nombre": 5,
+        "coordonnees": { "latitude": 43.6961, "longitude": 7.2906 }
+      }
+    ]
+  },
+  {
+    "city": "Bordeaux",
+    "depots": 3,
+    "distance": "25km",
+    "jour": "Vendredi",
+    "title": "Tournée Bordeaux 1",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Place de la Bourse",
+        "nombre": 12,
+        "coordonnees": { "latitude": 44.8412, "longitude": -0.5672 }
+      },
+      {
+        "adresse": "Miroir d'eau",
+        "nombre": 10,
+        "coordonnees": { "latitude": 44.8417, "longitude": -0.5673 }
+      },
+      {
+        "adresse": "Pont de Pierre",
+        "nombre": 8,
+        "coordonnees": { "latitude": 44.8389, "longitude": -0.5674 }
+      }
+    ]
+  },
+  {
+    "city": "Toulouse",
+    "depots": 3,
+    "distance": "28km",
+    "jour": "Samedi",
+    "title": "Tournée Toulouse 1",
+    "statut": "nonlivre",
+    "livraisons": [
+      {
+        "adresse": "Place du Capitole",
+        "nombre": 15,
+        "coordonnees": { "latitude": 43.6043, "longitude": 1.4437 }
+      },
+      {
+        "adresse": "Basilique Saint-Sernin",
+        "nombre": 10,
+        "coordonnees": { "latitude": 43.6085, "longitude": 1.4425 }
+      },
+      {
+        "adresse": "Jardin des Plantes",
+        "nombre": 5,
+        "coordonnees": { "latitude": 43.5935, "longitude": 1.4548 }
+      }
+    ]
+  }
+]
