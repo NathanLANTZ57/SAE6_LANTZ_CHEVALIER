@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, FlatList, Alert, Modal, ScrollView } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+  Alert,
+  Modal,
+  ScrollView,
+} from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db, MAPBOX_API_KEY } from "../../constants/firebaseconfig";
 import polyline from "@mapbox/polyline";
 import { CameraView, Camera } from "expo-camera";
@@ -13,7 +23,12 @@ const MapScreen = () => {
   const [routeCoordinates, setRouteCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
   const [tourneeData, setTourneeData] = useState<any[]>([]);
   const [tourneeId, setTourneeId] = useState<string | null>(null);
-  const [initialRegion, setInitialRegion] = useState<{ latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number } | null>(null);
+  const [initialRegion, setInitialRegion] = useState<{
+    latitude: number;
+    longitude: number;
+    latitudeDelta: number;
+    longitudeDelta: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -22,6 +37,12 @@ const MapScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [instructions, setInstructions] = useState<string[]>([]);
 
+  const [currentDepotIndex, setCurrentDepotIndex] = useState(0); // Track the current depot
+  const [depotScanned, setDepotScanned] = useState(false);
+  const [isScanningDepot, setIsScanningDepot] = useState(true);
+  const [scanTimeout, setScanTimeout] = useState(false);
+
+  const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -82,55 +103,95 @@ const MapScreen = () => {
           setInstructions(route.legs.flatMap((leg: any) => leg.steps.map((step: any) => step.maneuver.instruction)));
         }
       }
-
     };
 
     fetchRoute();
   }, [city]);
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    if (scanned) return;
+    if (scanned || scanTimeout) return;
     setScanned(true);
-
-    const livraisonActuelle = tourneeData[0];
-    if (!livraisonActuelle || !livraisonActuelle.adresse) {
-      Alert.alert("Erreur", "Aucune livraison en cours.");
-      setScanned(false);
-      return;
+    setScanTimeout(true);
+  
+    scanTimeoutRef.current = setTimeout(() => setScanTimeout(false), 2000);
+  
+    if (isScanningDepot) {
+      Alert.alert(
+        `Dépôt ${currentDepotIndex + 1} scanné`,
+        "Prêt à scanner les paniers",
+        [{ text: "OK", onPress: () => setScanning(false) }]
+      );
+      setIsScanningDepot(false);
+    } else {
+      setPaniersScannes(prev => {
+        const livraisonActuelle = tourneeData[0];
+        if (!livraisonActuelle) return prev;
+  
+        const newCount = (prev[livraisonActuelle.adresse] || 0) + 1;
+        const newState = { ...prev, [livraisonActuelle.adresse]: newCount };
+  
+        // Vérification IMMÉDIATE avec la nouvelle valeur
+        if (newCount === livraisonActuelle.nombre) {
+          Alert.alert(
+            "Dépôt complet",
+            `${livraisonActuelle.nombre} paniers scannés !`,
+            [{
+              text: "OK",
+              onPress: () => {
+                const newTourneeData = tourneeData.slice(1);
+                setTourneeData(newTourneeData);
+                setScanning(false);
+                
+                if (newTourneeData.length === 0) {
+                  Alert.alert("Tournée terminée", "Retour au dépôt principal");
+                  setCurrentDepotIndex(0);
+                } else {
+                  setIsScanningDepot(true);
+                  setCurrentDepotIndex(prev => prev + 1);
+                }
+              }
+            }]
+          );
+        }
+  
+        return newState;
+      });
     }
-
-    setPaniersScannes((prev) => {
-      const currentScanned = prev[livraisonActuelle.adresse] || 0;
-      return { ...prev, [livraisonActuelle.adresse]: currentScanned + 1 };
-    });
-
-    if ((paniersScannes[livraisonActuelle.adresse] || 0) + 1 >= livraisonActuelle.nombre) {
-      Alert.alert("Livraison terminée", `Tous les paniers pour ${livraisonActuelle.adresse} ont été livrés.`);
-
-      const newTourneeData = [...tourneeData];
-      newTourneeData.shift();
-      setTourneeData(newTourneeData);
-
-      if (newTourneeData.length === 0 && tourneeId) {
-        const tourneeRef = doc(db, "tournées", tourneeId);
-        await updateDoc(tourneeRef, { statut: "livre" });
-
-        Alert.alert("Tournée terminée", "Toutes les livraisons ont été effectuées.");
-      }
-    }
-
-    setTimeout(() => {
-      setScanned(false);
-    }, 1000);
+  
+    setTimeout(() => setScanned(false), 1000);
   };
+
+  const toggleScanning = () => {
+    setScanning(true);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (scanTimeoutRef.current) {
+        clearTimeout(scanTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (scanning) {
     return (
       <CameraView
         style={styles.camera}
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-        barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr"],
+        }}
       >
+        {/* Ajoutez ce overlay personnalisé */}
+        <View style={styles.overlay}>
+          <View style={styles.border}>
+            <View style={styles.topLeftCorner} />
+            <View style={styles.topRightCorner} />
+            <View style={styles.bottomLeftCorner} />
+            <View style={styles.bottomRightCorner} />
+          </View>
+        </View>
+  
         <TouchableOpacity style={styles.closeButton} onPress={() => setScanning(false)}>
           <Text style={styles.closeButtonText}>Fermer</Text>
         </TouchableOpacity>
@@ -150,7 +211,9 @@ const MapScreen = () => {
   return (
     <View style={styles.container}>
       <MapView style={styles.map} initialRegion={initialRegion || undefined}>
-        {routeCoordinates.length > 0 && <Polyline coordinates={routeCoordinates} strokeColor="#7ba352" strokeWidth={4} />}
+        {routeCoordinates.length > 0 && (
+          <Polyline coordinates={routeCoordinates} strokeColor="#7ba352" strokeWidth={4} />
+        )}
         {tourneeData.map((livraison, index) => (
           <Marker key={index} coordinate={livraison.coordonnees}>
             <View style={styles.markerContainer}>
@@ -180,8 +243,12 @@ const MapScreen = () => {
         />
       </View>
 
-      <TouchableOpacity style={styles.scanButton} onPress={() => setScanning(true)}>
-        <Text style={styles.scanButtonText}>Scanner un panier</Text>
+      <TouchableOpacity style={styles.scanButton} onPress={toggleScanning} disabled={scanTimeout}>
+        <Text style={styles.scanButtonText}>
+          {isScanningDepot
+            ? `Scanner le dépôt ${currentDepotIndex + 1}`
+            : "Scanner un panier"}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.instructionsButton} onPress={() => setModalVisible(true)}>
@@ -194,7 +261,9 @@ const MapScreen = () => {
             <Text style={styles.instructionsHeader}>Instructions de navigation</Text>
             <ScrollView>
               {instructions.map((instruction: string, index: number) => (
-                <Text key={index} style={styles.instructionText}>{instruction}</Text>
+                <Text key={index} style={styles.instructionText}>
+                  {instruction}
+                </Text>
               ))}
             </ScrollView>
             <TouchableOpacity style={styles.closeModalButton} onPress={() => setModalVisible(false)}>
@@ -203,7 +272,6 @@ const MapScreen = () => {
           </View>
         </View>
       </Modal>
-
     </View>
   );
 };
@@ -212,27 +280,128 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   map: { flex: 1 },
-  backButton: { position: "absolute", top: 20, left: 16, backgroundColor: "#fff", padding: 12, borderRadius: 8 },
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 16,
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+  },
   backButtonText: { fontSize: 16, color: "#7ba352", fontWeight: "bold" },
-  scanButton: { backgroundColor: "#7ba352", padding: 12, borderRadius: 8, marginTop: 20, alignItems: "center" },
+  scanButton: {
+    backgroundColor: "#7ba352",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: "center",
+  },
   scanButtonText: { fontSize: 16, fontWeight: "bold", color: "#fff" },
   camera: { flex: 1 },
-  closeButton: { position: "absolute", top: 40, left: 20, backgroundColor: "white", padding: 10, borderRadius: 8 },
+  closeButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 8,
+  },
   closeButtonText: { fontSize: 16, fontWeight: "bold" },
-  markerContainer: { backgroundColor: "#fff", padding: 5, borderRadius: 5, alignItems: "center", justifyContent: "center" },
+  markerContainer: {
+    backgroundColor: "#fff",
+    padding: 5,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   markerText: { fontSize: 16, fontWeight: "bold" },
   instructionsContainer: { padding: 10, backgroundColor: "white", borderRadius: 8, margin: 10 },
   instructionItem: { flexDirection: "row", justifyContent: "space-between", padding: 10 },
   scannedText: { fontSize: 14, color: "#7ba352", fontWeight: "bold" },
   instructionsHeader: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
   instructionText: { fontSize: 14, marginBottom: 3 },
-  instructionsButton: { backgroundColor: "#7ba352", padding: 12, borderRadius: 8, marginTop: 20, alignItems: "center" },
+  instructionsButton: {
+    backgroundColor: "#7ba352",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: "center",
+  },
   instructionsButtonText: { fontSize: 16, fontWeight: "bold", color: "#fff" },
-  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" },
-  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, width: "80%", maxHeight: "80%" },
-  closeModalButton: { backgroundColor: "#7ba352", padding: 12, borderRadius: 8, marginTop: 20, alignItems: "center" },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    maxHeight: "80%",
+  },
+  closeModalButton: {
+    backgroundColor: "#7ba352",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: "center",
+  },
   closeModalText: { fontSize: 16, fontWeight: "bold", color: "#fff" },
-
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  border: {
+    width: 250,
+    height: 250,
+    borderWidth: 2,
+    borderColor: 'rgba(123, 163, 82, 0.5)',
+    backgroundColor: 'transparent',
+    position: 'relative',
+  },
+  topLeftCorner: {
+    position: 'absolute',
+    left: -2,
+    top: -2,
+    width: 30,
+    height: 30,
+    borderLeftWidth: 4,
+    borderTopWidth: 4,
+    borderColor: '#7ba352',
+  },
+  topRightCorner: {
+    position: 'absolute',
+    right: -2,
+    top: -2,
+    width: 30,
+    height: 30,
+    borderRightWidth: 4,
+    borderTopWidth: 4,
+    borderColor: '#7ba352',
+  },
+  bottomLeftCorner: {
+    position: 'absolute',
+    left: -2,
+    bottom: -2,
+    width: 30,
+    height: 30,
+    borderLeftWidth: 4,
+    borderBottomWidth: 4,
+    borderColor: '#7ba352',
+  },
+  bottomRightCorner: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 30,
+    height: 30,
+    borderRightWidth: 4,
+    borderBottomWidth: 4,
+    borderColor: '#7ba352',
+  },
 });
 
 export default MapScreen;

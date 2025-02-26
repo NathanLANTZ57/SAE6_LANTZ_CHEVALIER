@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
@@ -38,15 +46,29 @@ const HomeScreen = () => {
       });
 
       // Obtenir le jour actuel
-      const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+      const jours = [
+        "Dimanche",
+        "Lundi",
+        "Mardi",
+        "Mercredi",
+        "Jeudi",
+        "Vendredi",
+        "Samedi",
+      ];
       const today = jours[new Date().getDay()];
 
       // Filtrer les tournées du jour
-      const todaysTours = fetchedData.filter((tournee) => tournee.jour === today);
+      const todaysTours = fetchedData.filter(
+        (tournee) => tournee.jour === today
+      );
 
       // Séparer les tournées livrées et non livrées
-      const nonLivrees = todaysTours.filter((tournee) => tournee.statut === "nonlivre");
-      const livrees = todaysTours.filter((tournee) => tournee.statut === "livre");
+      const nonLivrees = todaysTours.filter(
+        (tournee) => tournee.statut === "nonlivre"
+      );
+      const livrees = todaysTours.filter(
+        (tournee) => tournee.statut === "livre"
+      );
 
       setToursNonLivrees(nonLivrees);
       setToursLivrees(livrees);
@@ -70,8 +92,16 @@ const HomeScreen = () => {
   };
 
   const renderCard = ({ item }: { item: any }) => (
-    <TouchableOpacity onPress={() => handleSelect(item)} disabled={item.statut === "livre"}>
-      <View style={[styles.card, item.statut === "livre" ? styles.cardLivree : styles.cardNonLivree]}>
+    <TouchableOpacity
+      onPress={() => handleSelect(item)}
+      disabled={item.statut === "livre"}
+    >
+      <View
+        style={[
+          styles.card,
+          item.statut === "livre" ? styles.cardLivree : styles.cardNonLivree,
+        ]}
+      >
         <Text style={styles.cityName}>{item.city}</Text>
         <Text style={styles.cardText}>Dépôts : {item.depots}</Text>
         <Text style={styles.cardText}>Distance : {item.distance}</Text>
@@ -115,12 +145,17 @@ const HomeScreen = () => {
       )}
 
       {toursNonLivrees.length === 0 && toursLivrees.length === 0 && (
-        <Text style={styles.noToursText}>Aucune tournée prévue pour aujourd'hui.</Text>
+        <Text style={styles.noToursText}>
+          Aucune tournée prévue pour aujourd'hui.
+        </Text>
       )}
 
       {/* Bouton d'actualisation */}
       <TouchableOpacity style={styles.refreshButton} onPress={fetchData}>
         <Text style={styles.refreshButtonText}>Actualiser</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={() => router.back()}>
+        <Text style={styles.buttonText}>Retour</Text>
       </TouchableOpacity>
     </View>
   );
@@ -207,6 +242,20 @@ const styles = StyleSheet.create({
     width: "50%",
   },
   refreshButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  button: {
+    backgroundColor: "#7ba352",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: "center",
+    width: "50%",
+    alignSelf: "center",
+  },
+  buttonText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
