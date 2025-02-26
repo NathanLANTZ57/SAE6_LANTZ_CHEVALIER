@@ -16,6 +16,8 @@ import { collection, getDocs, query, where, doc, updateDoc, serverTimestamp } fr
 import { db, MAPBOX_API_KEY } from "../../constants/firebaseconfig";
 import polyline from "@mapbox/polyline";
 import { CameraView, Camera } from "expo-camera";
+import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const MapScreen = () => {
   const router = useRouter();
@@ -123,7 +125,7 @@ const MapScreen = () => {
       );
       setIsScanningDepot(false);
     } else {
-      setPaniersScannes(prev => {
+      setPaniersScannes((prev) => {
         const livraisonActuelle = tourneeData[0];
         if (!livraisonActuelle) return prev;
   
@@ -135,22 +137,37 @@ const MapScreen = () => {
           Alert.alert(
             "Dépôt complet",
             `${livraisonActuelle.nombre} paniers scannés !`,
-            [{
-              text: "OK",
-              onPress: () => {
-                const newTourneeData = tourneeData.slice(1);
-                setTourneeData(newTourneeData);
-                setScanning(false);
-                
-                if (newTourneeData.length === 0) {
-                  Alert.alert("Tournée terminée", "Retour au dépôt principal");
-                  setCurrentDepotIndex(0);
-                } else {
-                  setIsScanningDepot(true);
-                  setCurrentDepotIndex(prev => prev + 1);
-                }
-              }
-            }]
+            [
+              {
+                text: "OK",
+                onPress: async () => {
+                  const newTourneeData = tourneeData.slice(1);
+                  setTourneeData(newTourneeData);
+                  setScanning(false);
+  
+                  if (newTourneeData.length === 0) {
+                    Alert.alert("🎉 Tournée terminée", "Retour au dépôt principal.");
+                    setCurrentDepotIndex(0);
+
+                    await triggerLocalNotification();
+  
+                    // **Mettre à jour la tournée comme livrée**
+                    if (tourneeId) {
+                      await updateDoc(doc(db, "tournées", tourneeId), {
+                        statut: "livre",
+                        updatedAt: serverTimestamp(),
+                      });
+  
+                      // **Envoyer la notification après la mise à jour**
+                      await sendPushNotification();
+                    }
+                  } else {
+                    setIsScanningDepot(true);
+                    setCurrentDepotIndex((prev) => prev + 1);
+                  }
+                },
+              },
+            ]
           );
         }
   
@@ -159,6 +176,42 @@ const MapScreen = () => {
     }
   
     setTimeout(() => setScanned(false), 1000);
+  };
+  
+
+  const sendPushNotification = async () => {
+    const token = await AsyncStorage.getItem("expoPushToken");
+    if (!token) {
+      console.error("Aucun token de notification trouvé.");
+      return;
+    }
+  
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: token,
+        sound: "default",
+        title: "Tournée terminée ✅",
+        body: "Votre tournée est terminée ! Cliquez pour voir les détails.",
+        data: { screen: "client" }, // On envoie l'écran cible dans les données
+      }),
+    });
+  }; 
+  
+  const triggerLocalNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Tournée terminée ✅",
+        body: "Votre tournée est terminée ! Cliquez pour voir les détails.",
+        data: { screen: "client" }, // Simule la navigation
+      },
+      trigger: null, // Déclenche immédiatement
+    });
   };
 
   const toggleScanning = () => {
