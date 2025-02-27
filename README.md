@@ -10,7 +10,7 @@ Assure-toi d’avoir installé les outils suivants :
 ### 📥 **1. Cloner le projet**
 ```sh
 git clone https://github.com/NathanLANTZ57/SAE6_LANTZ_CHEVALIER.git
-cd TonRepo
+cd SAE6_LANTZ_CHEVALIER
 ```
 
 ### 📦 **2. Installer les dépendances**
