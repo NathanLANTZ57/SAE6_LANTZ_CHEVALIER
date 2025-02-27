@@ -1,5 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, ThemeProvider, useNavigationState } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -46,6 +46,15 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const router = useRouter();
 
+  const isReady = useNavigationState(state => state.stale === false);
+
+  useEffect(() => {
+    if (isReady) {
+      router.replace("/home");
+    }
+  }, [isReady]);
+
+
   useEffect(() => {
     // 🎯 Enregistrer le token pour les notifications
     const setupNotifications = async () => {
@@ -66,17 +75,6 @@ function RootLayoutNav() {
 
     return () => subscription.remove();
   }, []);
-
-  useEffect(() => {
-    const testRedirection = async () => {
-      setTimeout(() => {
-        router.push("/client"); // Simule un clic sur la notification
-      }, 5000); // Attend 5 secondes après le démarrage de l'application
-    };
-  
-    testRedirection();
-  }, []);
-  
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

@@ -1,22 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { registerForPushNotificationsAsync } from "../constants/notifications";
 
 const HomeScreen = () => {
   const router = useRouter();
-
-  useEffect(() => {
-    async function getToken() {
-      const token = await registerForPushNotificationsAsync();
-      if (token) {
-        await AsyncStorage.setItem("expoPushToken", token);
-      }
-    }
-    getToken();
-  }, []);
   
   return (
     <View style={styles.container}>

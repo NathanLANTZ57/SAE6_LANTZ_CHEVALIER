@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useFonts } from "expo-font";
+import * as Font from "expo-font";
 import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../constants/firebaseconfig";
@@ -18,16 +18,18 @@ const HomeScreen = () => {
   const [toursNonLivrees, setToursNonLivrees] = useState<any[]>([]);
   const [toursLivrees, setToursLivrees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFontLoaded, setIsFontLoaded] = useState(false);
 
-  // Charger les polices personnalisées
-  const [fontsLoaded] = useFonts({
-    MontserratAlternates: require("../../assets/fonts/MontserratAlternates-Regular.ttf"),
-    Comme: require("../../assets/fonts/Comme-ExtraLight.ttf"),
-  });
-
-  if (!fontsLoaded) {
-    return <Text>Chargement des polices...</Text>;
-  }
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        MontserratAlternates: require("../../assets/fonts/MontserratAlternates-Regular.ttf"),
+        Comme: require("../../assets/fonts/Comme-ExtraLight.ttf"),
+      });
+      setIsFontLoaded(true);
+    }
+    loadFonts();
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -38,40 +40,21 @@ const HomeScreen = () => {
         return {
           id: doc.id,
           jour: data.jour,
+          statut: data.statut,
           city: data.city,
           depots: data.depots,
           distance: data.distance,
-          statut: data.statut, // Ajout du statut
         };
       });
 
       // Obtenir le jour actuel
-      const jours = [
-        "Dimanche",
-        "Lundi",
-        "Mardi",
-        "Mercredi",
-        "Jeudi",
-        "Vendredi",
-        "Samedi",
-      ];
+      const jours = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
       const today = jours[new Date().getDay()];
 
       // Filtrer les tournées du jour
-      const todaysTours = fetchedData.filter(
-        (tournee) => tournee.jour === today
-      );
-
-      // Séparer les tournées livrées et non livrées
-      const nonLivrees = todaysTours.filter(
-        (tournee) => tournee.statut === "nonlivre"
-      );
-      const livrees = todaysTours.filter(
-        (tournee) => tournee.statut === "livre"
-      );
-
-      setToursNonLivrees(nonLivrees);
-      setToursLivrees(livrees);
+      const todaysTours = fetchedData.filter((tournee) => tournee.jour === today);
+      setToursNonLivrees(todaysTours.filter((tournee) => tournee.statut === "nonlivre"));
+      setToursLivrees(todaysTours.filter((tournee) => tournee.statut === "livre"));
     } catch (error) {
       console.error("Erreur lors de la récupération des données :", error);
     } finally {
@@ -83,37 +66,11 @@ const HomeScreen = () => {
     fetchData();
   }, []);
 
-  const handleSelect = (tournee: any) => {
-    if (tournee.statut === "livre") {
-      Alert.alert("Tournée déjà livrée", "Cette tournée est déjà livrée.");
-    } else {
-      router.push(`/details?city=${tournee.city}`);
-    }
-  };
-
-  const renderCard = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      onPress={() => handleSelect(item)}
-      disabled={item.statut === "livre"}
-    >
-      <View
-        style={[
-          styles.card,
-          item.statut === "livre" ? styles.cardLivree : styles.cardNonLivree,
-        ]}
-      >
-        <Text style={styles.cityName}>{item.city}</Text>
-        <Text style={styles.cardText}>Dépôts : {item.depots}</Text>
-        <Text style={styles.cardText}>Distance : {item.distance}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  if (isLoading) {
+  if (!isFontLoaded) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#7ba352" />
-        <Text>Chargement des tournées...</Text>
+        <Text>Chargement des polices...</Text>
       </View>
     );
   }
@@ -121,36 +78,49 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.sectionHeader}>Tournées du jour :</Text>
-
-      {toursNonLivrees.length > 0 && (
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#7ba352" />
+      ) : (
         <>
-          <Text style={styles.subHeader}>Tournées Non Livrées :</Text>
-          <FlatList
-            data={toursNonLivrees}
-            renderItem={renderCard}
-            keyExtractor={(item) => item.id}
-          />
+          {toursNonLivrees.length > 0 && (
+            <>
+              <Text style={styles.subHeader}>Tournées Non Livrées :</Text>
+              <FlatList
+                data={toursNonLivrees}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => router.push(`/details?city=${item.city}`)} disabled={item.statut === "livre"}>
+                    <View style={[styles.card, item.statut === "livre" ? styles.cardLivree : styles.cardNonLivree]}>
+                      <Text style={styles.cityName}>{item.city}</Text>
+                      <Text style={styles.cardText}>Dépôts : {item.depots}</Text>
+                      <Text style={styles.cardText}>Distance : {item.distance}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.id}
+              />
+            </>
+          )}
+          {toursLivrees.length > 0 && (
+            <>
+              <Text style={styles.subHeader}>Tournées Livrées :</Text>
+              <FlatList
+                data={toursLivrees}
+                renderItem={({ item }) => (
+                  <View style={[styles.card, styles.cardLivree]}>
+                    <Text style={styles.cityName}>{item.city}</Text>
+                    <Text style={styles.cardText}>Dépôts : {item.depots}</Text>
+                    <Text style={styles.cardText}>Distance : {item.distance}</Text>
+                  </View>
+                )}
+                keyExtractor={(item) => item.id}
+              />
+            </>
+          )}
+          {toursNonLivrees.length === 0 && toursLivrees.length === 0 && (
+            <Text style={styles.noToursText}>Aucune tournée prévue pour aujourd'hui.</Text>
+          )}
         </>
       )}
-
-      {toursLivrees.length > 0 && (
-        <>
-          <Text style={styles.subHeader}>Tournées Livrées :</Text>
-          <FlatList
-            data={toursLivrees}
-            renderItem={renderCard}
-            keyExtractor={(item) => item.id}
-          />
-        </>
-      )}
-
-      {toursNonLivrees.length === 0 && toursLivrees.length === 0 && (
-        <Text style={styles.noToursText}>
-          Aucune tournée prévue pour aujourd'hui.
-        </Text>
-      )}
-
-      {/* Bouton d'actualisation */}
       <TouchableOpacity style={styles.refreshButton} onPress={fetchData}>
         <Text style={styles.refreshButtonText}>Actualiser</Text>
       </TouchableOpacity>
