@@ -5,13 +5,13 @@ import { getAnalytics } from "firebase/analytics";
 
 // Votre configuration Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBViHOlwEhTo4IezuQEGFqKfkqk9KrIVV8",
-  authDomain: "sae6-7b080.firebaseapp.com",
-  projectId: "sae6-7b080",
-  storageBucket: "sae6-7b080.firebasestorage.app",
-  messagingSenderId: "83160049604",
-  appId: "1:83160049604:web:631427ec93c67c5a98e691",
-  measurementId: "G-9NCXPPQBS0"
+   apiKey: "TON_API_KEY",
+  authDomain: "TON_PROJET.firebaseapp.com",
+  projectId: "TON_PROJECT_ID",
+  storageBucket: "TON_BUCKET.appspot.com",
+  messagingSenderId: "TON_MESSAGING_ID",
+  appId: "TON_APP_ID",
+  measurementId: "TON_MEASUREMENT_ID"
 };
 
 // Initialiser Firebase
