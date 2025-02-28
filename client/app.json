@@ -25,7 +25,9 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-barcode-scanner"
+      "expo-barcode-scanner",
+      "expo-router",
+      "expo-font"
     ]
   }
 }

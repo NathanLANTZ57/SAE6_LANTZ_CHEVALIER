@@ -1,8 +1,0 @@
-[
-  { "id": "1", "city": "Épinal", "depots": 3, "distance": 103 },
-  { "id": "2", "city": "Dinozé", "depots": 3, "distance": 70 },
-  { "id": "3", "city": "Golbey", "depots": 3, "distance": 26 },
-  { "id": "4", "city": "Ville 4", "depots": 3, "distance": 32 },
-  { "id": "5", "city": "Ville 5", "depots": 3, "distance": 15 },
-  { "id": "6", "city": "Ville 6", "depots": 3, "distance": 60 }
-]
